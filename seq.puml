@@ -1,0 +1,7 @@
+@startuml
+TableMask -> SessionState: get()
+SessionState --> SessionState:
+
+Alice -> Bob: Another authentication Request
+Alice <-- Bob: another authentication Response
+@enduml
