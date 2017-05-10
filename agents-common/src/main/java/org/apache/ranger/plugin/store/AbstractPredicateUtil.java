@@ -453,7 +453,8 @@ public class AbstractPredicateUtil {
 																policy.getAllowExceptions(),
 																policy.getDenyExceptions(),
 																policy.getDataMaskPolicyItems(),
-																policy.getRowFilterPolicyItems()
+																policy.getRowFilterPolicyItems(),
+							                                    policy.getLimitFilterPolicyItems()
 															  };
 
 					for(List<?> policyItemsObj : policyItemsList) {
@@ -505,7 +506,8 @@ public class AbstractPredicateUtil {
 							policy.getAllowExceptions(),
 							policy.getDenyExceptions(),
 							policy.getDataMaskPolicyItems(),
-							policy.getRowFilterPolicyItems()
+							policy.getRowFilterPolicyItems(),
+							policy.getLimitFilterPolicyItems()
 						  };
 
 					for(List<?> policyItemsObj : policyItemsList) {

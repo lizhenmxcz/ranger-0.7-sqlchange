@@ -112,6 +112,15 @@ public class XXAccessTypeDef extends XXDBBase implements java.io.Serializable {
 	protected String rowFilterOptions;
 
 	/**
+	 * limitFilterOptions of the XXAccessTypeDef
+	 * <ul>
+	 * </ul>
+	 *
+	 */
+	@Column(name = "limitfilter_options")
+	protected String limitFilterOptions;
+
+	/**
 	 * This method sets the value to the member attribute <b> id</b> . You
 	 * cannot set null to the attribute.
 	 *
@@ -263,11 +272,19 @@ public class XXAccessTypeDef extends XXDBBase implements java.io.Serializable {
 
 	public void setRowFilterOptions(String rowFilterOptions) { this.rowFilterOptions = rowFilterOptions; }
 
+	public String getLimitFilterOptions() {
+		return limitFilterOptions;
+	}
+
+	public void setLimitFilterOptions(String limitFilterOptions) {
+		this.limitFilterOptions = limitFilterOptions;
+	}
+
 	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
+         * (non-Javadoc)
+         *
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
 	@Override
 	public boolean equals(Object obj) {
 		if (!super.equals(obj)) {
@@ -359,7 +376,7 @@ public class XXAccessTypeDef extends XXDBBase implements java.io.Serializable {
 		return "XXAccessTypeDef [" + super.toString() + " id=" + id
 				+ ", defId=" + defId + ", itemId=" + itemId + ", name=" + name + ", label=" + label
 				+ ", rbKeyLabel=" + rbKeyLabel + ", dataMaskOptions=" + dataMaskOptions
-				+ ", rowFilterOptions=" + rowFilterOptions + ", order=" + order + "]";
+				+ ", rowFilterOptions=" + rowFilterOptions + ", limitFilterOptions=" + limitFilterOptions + ",order=" + order + "]";
 	}
 
 }

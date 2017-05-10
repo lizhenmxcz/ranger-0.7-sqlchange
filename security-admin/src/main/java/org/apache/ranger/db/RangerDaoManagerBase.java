@@ -195,6 +195,9 @@ public abstract class RangerDaoManagerBase {
 		if (classType== AppConstants.CLASS_TYPE_RANGER_POLICY_ITEM_ROWFILTER_INFO) {
 			return getXXPolicyItemRowFilterInfo();
 		}
+		if (classType== AppConstants.CLASS_TYPE_RANGER_POLICY_ITEM_LIMITFILTER_INFO) {
+			return getXXPolicyItemLimitFilterInfo();
+		}
 		if (classType== AppConstants.CLASS_TYPE_XA_SERVICE_VERSION_INFO) {
 			return getXXServiceVersionInfo();
 		}
@@ -359,6 +362,9 @@ public abstract class RangerDaoManagerBase {
 		}
 		if (className.equals("XXPolicyItemRowFilterInfo")) {
 			return getXXPolicyItemRowFilterInfo();
+		}
+		if (className.equals("XXPolicyItemLimitFilterInfo")) {
+			return getXXPolicyItemLimitFilterInfo();
 		}
 		if (className.equals("XXServiceVersionInfo")) {
 			return getXXServiceVersionInfo();
@@ -581,6 +587,10 @@ public abstract class RangerDaoManagerBase {
 
 	public XXPolicyItemRowFilterInfoDao getXXPolicyItemRowFilterInfo() {
 		return new XXPolicyItemRowFilterInfoDao(this);
+	}
+
+	public XXPolicyItemLimitFilterInfoDao getXXPolicyItemLimitFilterInfo() {
+		return new XXPolicyItemLimitFilterInfoDao(this);
 	}
 
 	public XXServiceVersionInfoDao getXXServiceVersionInfo() {

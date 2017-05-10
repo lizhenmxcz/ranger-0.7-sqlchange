@@ -26,13 +26,7 @@ import java.util.Set;
 import org.apache.ranger.plugin.model.RangerPolicy;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
 import org.apache.ranger.plugin.model.RangerServiceDef;
-import org.apache.ranger.plugin.policyengine.RangerAccessRequest;
-import org.apache.ranger.plugin.policyengine.RangerAccessResult;
-import org.apache.ranger.plugin.policyengine.RangerAccessResource;
-import org.apache.ranger.plugin.policyengine.RangerDataMaskResult;
-import org.apache.ranger.plugin.policyengine.RangerPolicyEngineOptions;
-import org.apache.ranger.plugin.policyengine.RangerResourceAccessInfo;
-import org.apache.ranger.plugin.policyengine.RangerRowFilterResult;
+import org.apache.ranger.plugin.policyengine.*;
 import org.apache.ranger.plugin.policyresourcematcher.RangerPolicyResourceEvaluator;
 
 
@@ -70,6 +64,8 @@ public interface RangerPolicyEvaluator extends RangerPolicyResourceEvaluator {
 	void evaluate(RangerAccessRequest request, RangerDataMaskResult result);
 
 	void evaluate(RangerAccessRequest request, RangerRowFilterResult result);
+
+	void evaluate(RangerAccessRequest request, RangerLimitFilterResult result);
 
 	boolean isMatch(RangerAccessResource resource, Map<String, Object> evalContext);
 

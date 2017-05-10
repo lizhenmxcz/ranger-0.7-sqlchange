@@ -256,6 +256,12 @@ public class RangerServiceDefHelper {
 				} else {
 					resourceDefs = null;
 				}
+			} else if(policyType == RangerPolicy.POLICY_TYPE_LIMITFILTER) {
+				if(serviceDef.getLimitFilterDef() != null) {
+					resourceDefs = serviceDef.getLimitFilterDef().getResources();
+				} else {
+					resourceDefs = null;
+				}
 			} else { // unknown policyType; use all resources
 				resourceDefs = serviceDef.getResources();
 			}

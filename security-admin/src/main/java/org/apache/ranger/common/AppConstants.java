@@ -589,6 +589,11 @@ public class AppConstants extends RangerCommonEnums {
 	public static final int CLASS_TYPE_RANGER_POLICY_ITEM_ROWFILTER_INFO = 1051;
 
 	/**
+	 * CLASS_TYPE_RANGER_POLICY_ITEM_LIMITFILTER_INFO is an element of enum ClassTypes. Its value is "CLASS_TYPE_RANGER_POLICY_ITEM_LIMITFILTER_INFO".
+	 */
+	public static final int CLASS_TYPE_RANGER_POLICY_ITEM_LIMITFILTER_INFO = 1052;
+
+	/**
 	 * CLASS_TYPE_XA_SERVICE_VERSION_INFO is an element of enum ClassTypes. Its value is "CLASS_TYPE_XA_SERVICE_VERSION_INFO".
 	 */
 	public static final int CLASS_TYPE_XA_SERVICE_VERSION_INFO = 1052;

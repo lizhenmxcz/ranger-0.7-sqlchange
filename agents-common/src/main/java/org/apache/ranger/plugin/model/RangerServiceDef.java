@@ -60,14 +60,15 @@ public class RangerServiceDef extends RangerBaseModelObject implements java.io.S
 	private List<RangerEnumDef>            enums            = null;
 	private RangerDataMaskDef              dataMaskDef      = null;
 	private RangerRowFilterDef             rowFilterDef     = null;
+	private RangerLimitFilterDef           limitFilterDef   = null;
 
 
 	public RangerServiceDef() {
-		this(null, null, null, null, null, null, null, null, null, null, null, null, null);
+		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 	}
 
 	public RangerServiceDef(String name, String implClass, String label, String description, Map<String, String> options, List<RangerServiceConfigDef> configs, List<RangerResourceDef> resources, List<RangerAccessTypeDef> accessTypes, List<RangerPolicyConditionDef> policyConditions, List<RangerContextEnricherDef> contextEnrichers, List<RangerEnumDef> enums) {
-		this(name, implClass, label, description, options, configs, resources, accessTypes, policyConditions, contextEnrichers, enums, null, null);
+		this(name, implClass, label, description, options, configs, resources, accessTypes, policyConditions, contextEnrichers, enums, null, null, null);
 	}
 
 	/**
@@ -84,7 +85,7 @@ public class RangerServiceDef extends RangerBaseModelObject implements java.io.S
 	 * @param dataMaskDef
 	 * @param enums
 	 */
-	public RangerServiceDef(String name, String implClass, String label, String description, Map<String, String> options, List<RangerServiceConfigDef> configs, List<RangerResourceDef> resources, List<RangerAccessTypeDef> accessTypes, List<RangerPolicyConditionDef> policyConditions, List<RangerContextEnricherDef> contextEnrichers, List<RangerEnumDef> enums, RangerDataMaskDef dataMaskDef, RangerRowFilterDef rowFilterDef) {
+	public RangerServiceDef(String name, String implClass, String label, String description, Map<String, String> options, List<RangerServiceConfigDef> configs, List<RangerResourceDef> resources, List<RangerAccessTypeDef> accessTypes, List<RangerPolicyConditionDef> policyConditions, List<RangerContextEnricherDef> contextEnrichers, List<RangerEnumDef> enums, RangerDataMaskDef dataMaskDef, RangerRowFilterDef rowFilterDef, RangerLimitFilterDef limitFilterDef) {
 		super();
 
 		setName(name);
@@ -100,6 +101,7 @@ public class RangerServiceDef extends RangerBaseModelObject implements java.io.S
 		setEnums(enums);
 		setDataMaskDef(dataMaskDef);
 		setRowFilterDef(rowFilterDef);
+		setLimitFilterDef(limitFilterDef);
 	}
 
 	/**
@@ -119,6 +121,7 @@ public class RangerServiceDef extends RangerBaseModelObject implements java.io.S
 		setEnums(other.getEnums());
 		setDataMaskDef(other.getDataMaskDef());
 		setRowFilterDef(other.getRowFilterDef());
+		setLimitFilterDef(other.getLimitFilterDef());
 	}
 
 	/**
@@ -415,6 +418,14 @@ public class RangerServiceDef extends RangerBaseModelObject implements java.io.S
 		this.rowFilterDef = rowFilterDef == null ? new RangerRowFilterDef() : rowFilterDef;
 	}
 
+	public RangerLimitFilterDef getLimitFilterDef() {
+		return limitFilterDef;
+	}
+
+	public void setLimitFilterDef(RangerLimitFilterDef limitFilterDef) {
+		this.limitFilterDef = limitFilterDef == null ? new RangerLimitFilterDef() : limitFilterDef;
+	}
+
 	@Override
 	public String toString( ) {
 		StringBuilder sb = new StringBuilder();
@@ -513,6 +524,12 @@ public class RangerServiceDef extends RangerBaseModelObject implements java.io.S
 		sb.append("rowFilterDef={");
 		if(rowFilterDef != null) {
 			rowFilterDef.toString(sb);
+		}
+		sb.append("} ");
+
+		sb.append("limitFilterDef={");
+		if(limitFilterDef != null) {
+			limitFilterDef.toString(sb);
 		}
 		sb.append("} ");
 
@@ -3024,6 +3041,147 @@ public class RangerServiceDef extends RangerBaseModelObject implements java.io.S
 			if (getClass() != obj.getClass())
 				return false;
 			RangerRowFilterDef other = (RangerRowFilterDef) obj;
+
+			if (accessTypes == null) {
+				if (other.accessTypes != null)
+					return false;
+			} else if (!accessTypes.equals(other.accessTypes))
+				return false;
+			if (resources == null) {
+				if (other.resources != null)
+					return false;
+			} else if (!resources.equals(other.resources))
+				return false;
+			return true;
+		}
+	}
+
+	@JsonAutoDetect(fieldVisibility=Visibility.ANY)
+	@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown=true)
+	@XmlRootElement
+	@XmlAccessorType(XmlAccessType.FIELD)
+	public static class RangerLimitFilterDef implements java.io.Serializable {
+		private static final long serialVersionUID = 1L;
+
+		private List<RangerAccessTypeDef> accessTypes;
+		private List<RangerResourceDef>   resources;
+
+
+		public RangerLimitFilterDef() {
+			setAccessTypes(null);
+			setResources(null);
+		}
+
+		public RangerLimitFilterDef(List<RangerAccessTypeDef> accessTypes, List<RangerResourceDef> resources) {
+			setAccessTypes(accessTypes);
+			setResources(resources);
+		}
+
+		public RangerLimitFilterDef(RangerRowFilterDef other) {
+			setAccessTypes(other.getAccessTypes());
+			setResources(other.getResources());
+		}
+
+		public List<RangerAccessTypeDef> getAccessTypes() {
+			return accessTypes;
+		}
+
+		public void setAccessTypes(List<RangerAccessTypeDef> accessTypes) {
+			if(this.accessTypes == null) {
+				this.accessTypes = new ArrayList<RangerAccessTypeDef>();
+			}
+
+			if(this.accessTypes == accessTypes) {
+				return;
+			}
+
+			this.accessTypes.clear();
+
+			if(accessTypes != null) {
+				for(RangerAccessTypeDef accessType : accessTypes) {
+					this.accessTypes.add(accessType);
+				}
+			}
+		}
+
+		public List<RangerResourceDef> getResources() {
+			return resources;
+		}
+
+		public void setResources(List<RangerResourceDef> resources) {
+			if(this.resources == null) {
+				this.resources = new ArrayList<RangerResourceDef>();
+			}
+
+			if(this.resources == resources) {
+				return;
+			}
+
+			this.resources.clear();
+
+			if(resources != null) {
+				for(RangerResourceDef resource : resources) {
+					this.resources.add(resource);
+				}
+			}
+		}
+
+		@Override
+		public String toString( ) {
+			StringBuilder sb = new StringBuilder();
+
+			toString(sb);
+
+			return sb.toString();
+		}
+
+		public StringBuilder toString(StringBuilder sb) {
+			sb.append("RangerLimitFilterDef={");
+
+			sb.append("accessTypes={");
+			if(accessTypes != null) {
+				for(RangerAccessTypeDef accessType : accessTypes) {
+					if(accessType != null) {
+						accessType.toString(sb).append(" ");
+					}
+				}
+			}
+			sb.append("} ");
+
+			sb.append("resources={");
+			if(resources != null) {
+				for(RangerResourceDef resource : resources) {
+					if(resource != null) {
+						resource.toString(sb).append(" ");
+					}
+				}
+			}
+			sb.append("} ");
+
+			sb.append("}");
+
+			return sb;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((accessTypes == null) ? 0 : accessTypes.hashCode());
+			result = prime * result + ((resources == null) ? 0 : resources.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			RangerLimitFilterDef other = (RangerLimitFilterDef) obj;
 
 			if (accessTypes == null) {
 				if (other.accessTypes != null)

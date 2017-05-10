@@ -401,6 +401,47 @@ public class RangerPolicyEngineImpl implements RangerPolicyEngine {
 	}
 
 	@Override
+	public RangerLimitFilterResult evalLimitFilterPolicies(RangerAccessRequest request, RangerAccessResultProcessor resultProcessor) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("==> RangerPolicyEngineImpl.evalLimitFilterPolicies(" + request + ")");
+		}
+
+		RangerLimitFilterResult ret = new RangerLimitFilterResult(getServiceName(), getServiceDef(), request);
+
+		if(request != null) {
+			List<RangerPolicyEvaluator> evaluators = policyRepository.getLimitFilterPolicyEvaluators(request.getResource());
+			for (RangerPolicyEvaluator evaluator : evaluators) {
+				evaluator.evaluate(request, ret);
+
+				if (ret.getIsAccessDetermined() && ret.getIsAuditedDetermined()) {
+					if(StringUtils.isNotEmpty(ret.getFilterExpr())) {
+						break;
+					} else {
+						ret.setIsAccessDetermined(false);
+					}
+				}
+			}
+		}
+
+		// no need to audit if filter is not enabled
+		if(! ret.isLimitFilterEnabled()) {
+			ret.setIsAudited(false);
+		}
+
+		updatePolicyUsageCounts(request, ret);
+
+		if (resultProcessor != null) {
+			resultProcessor.processResult(ret);
+		}
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("<== RangerPolicyEngineImpl.evalLimitFilterPolicies(" + request + "): " + ret);
+		}
+
+		return ret;
+	}
+
+	@Override
 	public boolean isAccessAllowed(RangerAccessResource resource, String user, Set<String> userGroups, String accessType) {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("==> RangerPolicyEngineImpl.isAccessAllowed(" + resource + ", " + user + ", " + userGroups + ", " + accessType + ")");

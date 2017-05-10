@@ -1689,6 +1689,10 @@ public class XUserMgr extends XUserMgrBase {
 				removeUserGroupReferences(rowFilterItems,null,vXGroup.getName());
 				rangerPolicy.setRowFilterPolicyItems(rowFilterItems);
 
+				List<RangerPolicy.RangerLimitFilterPolicyItem> limitFilterItems = rangerPolicy.getLimitFilterPolicyItems();
+				removeUserGroupReferences(limitFilterItems,null,vXGroup.getName());
+				rangerPolicy.setLimitFilterPolicyItems(limitFilterItems);
+
 				try {
 					svcStore.updatePolicy(rangerPolicy);
 				} catch (Throwable excp) {
@@ -1871,6 +1875,10 @@ public class XUserMgr extends XUserMgrBase {
 				List<RangerRowFilterPolicyItem> rowFilterItems = rangerPolicy.getRowFilterPolicyItems();
 				removeUserGroupReferences(rowFilterItems,vXUser.getName(),null);
 				rangerPolicy.setRowFilterPolicyItems(rowFilterItems);
+
+				List<RangerPolicy.RangerLimitFilterPolicyItem> limitFilterItems = rangerPolicy.getLimitFilterPolicyItems();
+				removeUserGroupReferences(limitFilterItems,vXUser.getName(),null);
+				rangerPolicy.setLimitFilterPolicyItems(limitFilterItems);
 
 				try{
 					svcStore.updatePolicy(rangerPolicy);

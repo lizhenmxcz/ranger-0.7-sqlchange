@@ -82,6 +82,7 @@ class RangerPolicyRepository {
     private List<RangerPolicyEvaluator>       policyEvaluators;
     private List<RangerPolicyEvaluator>       dataMaskPolicyEvaluators;
     private List<RangerPolicyEvaluator>       rowFilterPolicyEvaluators;
+    private List<RangerPolicyEvaluator>       limitFilterPolicyEvaluators;
     private final AuditModeEnum               auditModeEnum;
     private final Map<String, AuditInfo>      accessAuditCache;
 
@@ -90,6 +91,7 @@ class RangerPolicyRepository {
     private final Map<String, RangerResourceTrie> policyResourceTrie;
     private final Map<String, RangerResourceTrie> dataMaskResourceTrie;
     private final Map<String, RangerResourceTrie> rowFilterResourceTrie;
+    private final Map<String, RangerResourceTrie> limitFilterResourceTrie;
 
     RangerPolicyRepository(String appId, ServicePolicies servicePolicies, RangerPolicyEngineOptions options) {
         super();
@@ -142,10 +144,12 @@ class RangerPolicyRepository {
             policyResourceTrie    = null;
             dataMaskResourceTrie  = null;
             rowFilterResourceTrie = null;
+            limitFilterResourceTrie = null;
         } else {
             policyResourceTrie    = createResourceTrieMap(policyEvaluators);
             dataMaskResourceTrie  = createResourceTrieMap(dataMaskPolicyEvaluators);
             rowFilterResourceTrie = createResourceTrieMap(rowFilterPolicyEvaluators);
+            limitFilterResourceTrie = createResourceTrieMap(limitFilterPolicyEvaluators);
         }
     }
 
@@ -187,10 +191,12 @@ class RangerPolicyRepository {
             policyResourceTrie    = null;
             dataMaskResourceTrie  = null;
             rowFilterResourceTrie = null;
+            limitFilterResourceTrie = null;
         } else {
             policyResourceTrie    = createResourceTrieMap(policyEvaluators);
             dataMaskResourceTrie  = createResourceTrieMap(dataMaskPolicyEvaluators);
             rowFilterResourceTrie = createResourceTrieMap(rowFilterPolicyEvaluators);
+            limitFilterResourceTrie = createResourceTrieMap(limitFilterPolicyEvaluators);
         }
     }
 
@@ -239,6 +245,17 @@ class RangerPolicyRepository {
 
         return rowFilterResourceTrie == null || StringUtils.isEmpty(resourceStr)  ? getRowFilterPolicyEvaluators() : getPolicyEvaluators(rowFilterResourceTrie, resource);
     }
+
+    List<RangerPolicyEvaluator> getLimitFilterPolicyEvaluators() {
+        return limitFilterPolicyEvaluators;
+    }
+
+    List<RangerPolicyEvaluator> getLimitFilterPolicyEvaluators(RangerAccessResource resource) {
+        String resourceStr = resource == null ? null : resource.getAsString();
+
+        return limitFilterResourceTrie == null || StringUtils.isEmpty(resourceStr)  ? getLimitFilterPolicyEvaluators() : getPolicyEvaluators(limitFilterResourceTrie, resource);
+    }
+
     AuditModeEnum getAuditModeEnum() { return auditModeEnum; }
 
     private List<RangerPolicyEvaluator> getPolicyEvaluators(Map<String, RangerResourceTrie> resourceTrie, RangerAccessResource resource) {
@@ -486,6 +503,7 @@ class RangerPolicyRepository {
         List<RangerPolicyEvaluator> policyEvaluators = new ArrayList<RangerPolicyEvaluator>();
         List<RangerPolicyEvaluator> dataMaskPolicyEvaluators  = new ArrayList<RangerPolicyEvaluator>();
         List<RangerPolicyEvaluator> rowFilterPolicyEvaluators = new ArrayList<RangerPolicyEvaluator>();
+        List<RangerPolicyEvaluator> limitFilterPolicyEvaluators = new ArrayList<RangerPolicyEvaluator>();
 
         for (RangerPolicy policy : policies) {
             if (skipBuildingPolicyEvaluator(policy, options)) {
@@ -501,6 +519,8 @@ class RangerPolicyRepository {
                     dataMaskPolicyEvaluators.add(evaluator);
                 } else if(policy.getPolicyType() == RangerPolicy.POLICY_TYPE_ROWFILTER) {
                     rowFilterPolicyEvaluators.add(evaluator);
+                } else if(policy.getPolicyType() == RangerPolicy.POLICY_TYPE_LIMITFILTER) {
+                    limitFilterPolicyEvaluators.add(evaluator);
                 } else {
                     LOG.warn("RangerPolicyEngine: ignoring policy id=" + policy.getId() + " - invalid policyType '" + policy.getPolicyType() + "'");
                 }
@@ -514,6 +534,9 @@ class RangerPolicyRepository {
 
         Collections.sort(rowFilterPolicyEvaluators);
         this.rowFilterPolicyEvaluators = Collections.unmodifiableList(rowFilterPolicyEvaluators);
+
+        Collections.sort(limitFilterPolicyEvaluators);
+        this.limitFilterPolicyEvaluators = Collections.unmodifiableList(limitFilterPolicyEvaluators);
 
         List<RangerContextEnricher> contextEnrichers = new ArrayList<RangerContextEnricher>();
         if (CollectionUtils.isNotEmpty(this.policyEvaluators)) {
@@ -557,6 +580,14 @@ class RangerPolicyRepository {
                 RangerPolicy policy = policyEvaluator.getPolicy();
 
                 LOG.debug("rowFilter policy evaluation order: #" + (++order) + " - policy id=" + policy.getId() + "; name=" + policy.getName() + "; evalOrder=" + policyEvaluator.getEvalOrder());
+            }
+
+            LOG.debug("limitFilter policy evaluation order: " + this.limitFilterPolicyEvaluators.size() + " policies");
+            order = 0;
+            for(RangerPolicyEvaluator policyEvaluator : this.limitFilterPolicyEvaluators) {
+                RangerPolicy policy = policyEvaluator.getPolicy();
+
+                LOG.debug("limitFilter policy evaluation order: #" + (++order) + " - policy id=" + policy.getId() + "; name=" + policy.getName() + "; evalOrder=" + policyEvaluator.getEvalOrder());
             }
         }
     }
@@ -687,6 +718,7 @@ class RangerPolicyRepository {
         scrubPolicyItems(policyId, policy.getDenyExceptions());
         scrubPolicyItems(policyId, policy.getRowFilterPolicyItems());
         scrubPolicyItems(policyId, policy.getDataMaskPolicyItems());
+        scrubPolicyItems(policyId, policy.getLimitFilterPolicyItems());
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("<== RangerPolicyRepository.scrubPolicy(" + policy + "): " + altered);

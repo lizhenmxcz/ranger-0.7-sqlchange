@@ -25,17 +25,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.ranger.audit.model.AuthzAuditEvent;
 import org.apache.ranger.plugin.audit.RangerDefaultAuditHandler;
 import org.apache.ranger.plugin.model.RangerPolicy;
-import org.apache.ranger.plugin.policyengine.RangerAccessRequest;
-import org.apache.ranger.plugin.policyengine.RangerAccessResource;
-import org.apache.ranger.plugin.policyengine.RangerAccessResult;
-import org.apache.ranger.plugin.policyengine.RangerDataMaskResult;
-import org.apache.ranger.plugin.policyengine.RangerRowFilterResult;
+import org.apache.ranger.plugin.policyengine.*;
 
 import com.google.common.collect.Lists;
 
 public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
 
 	public static final String  ACCESS_TYPE_ROWFILTER = "ROW_FILTER";
+	public static final String  ACCESS_TYPE_LIMITFILTER = "LIMIT_FILTER";
 	Collection<AuthzAuditEvent> auditEvents  = null;
 	boolean                     deniedExists = false;
 
@@ -74,6 +71,10 @@ public class RangerHiveAuditHandler extends RangerDefaultAuditHandler {
 			return createAuditEvent(result, accessType, resourcePath);
 		} else if(result instanceof RangerRowFilterResult) {
 			accessType = ACCESS_TYPE_ROWFILTER;
+
+			return createAuditEvent(result, accessType, resourcePath);
+		} else if(result instanceof RangerLimitFilterResult) {
+			accessType = ACCESS_TYPE_LIMITFILTER;
 
 			return createAuditEvent(result, accessType, resourcePath);
 		} else {

@@ -55,6 +55,8 @@ import org.apache.ranger.authorization.hadoop.config.RangerConfiguration;
 import org.apache.ranger.common.AppConstants;
 import org.apache.ranger.common.ContextUtil;
 import org.apache.ranger.common.MessageEnums;
+import org.apache.ranger.db.*;
+import org.apache.ranger.entity.*;
 import org.apache.ranger.plugin.policyengine.RangerPolicyEngine;
 import org.apache.ranger.plugin.util.PasswordUtils;
 import org.apache.ranger.common.JSONUtil;
@@ -66,64 +68,16 @@ import org.apache.ranger.common.RangerServicePoliciesCache;
 import org.apache.ranger.common.RangerVersionInfo;
 import org.apache.ranger.common.StringUtil;
 import org.apache.ranger.common.UserSessionBase;
-import org.apache.ranger.db.RangerDaoManager;
-import org.apache.ranger.db.XXAccessTypeDefDao;
-import org.apache.ranger.db.XXAccessTypeDefGrantsDao;
-import org.apache.ranger.db.XXContextEnricherDefDao;
-import org.apache.ranger.db.XXDataMaskTypeDefDao;
-import org.apache.ranger.db.XXEnumDefDao;
-import org.apache.ranger.db.XXEnumElementDefDao;
-import org.apache.ranger.db.XXPolicyConditionDefDao;
-import org.apache.ranger.db.XXPolicyItemAccessDao;
-import org.apache.ranger.db.XXPolicyItemConditionDao;
-import org.apache.ranger.db.XXPolicyItemDao;
-import org.apache.ranger.db.XXPolicyItemDataMaskInfoDao;
-import org.apache.ranger.db.XXPolicyItemGroupPermDao;
-import org.apache.ranger.db.XXPolicyItemRowFilterInfoDao;
-import org.apache.ranger.db.XXPolicyItemUserPermDao;
-import org.apache.ranger.db.XXPolicyResourceDao;
-import org.apache.ranger.db.XXPolicyResourceMapDao;
-import org.apache.ranger.db.XXResourceDefDao;
-import org.apache.ranger.db.XXServiceConfigDefDao;
-import org.apache.ranger.db.XXServiceConfigMapDao;
-import org.apache.ranger.db.XXServiceDao;
-import org.apache.ranger.db.XXServiceVersionInfoDao;
-import org.apache.ranger.entity.XXAccessTypeDef;
-import org.apache.ranger.entity.XXAccessTypeDefGrants;
-import org.apache.ranger.entity.XXContextEnricherDef;
-import org.apache.ranger.entity.XXDBBase;
-import org.apache.ranger.entity.XXDataHist;
-import org.apache.ranger.entity.XXDataMaskTypeDef;
-import org.apache.ranger.entity.XXEnumDef;
-import org.apache.ranger.entity.XXEnumElementDef;
-import org.apache.ranger.entity.XXGroup;
-import org.apache.ranger.entity.XXPolicy;
-import org.apache.ranger.entity.XXPolicyConditionDef;
-import org.apache.ranger.entity.XXPolicyItem;
-import org.apache.ranger.entity.XXPolicyItemAccess;
-import org.apache.ranger.entity.XXPolicyItemCondition;
-import org.apache.ranger.entity.XXPolicyItemDataMaskInfo;
-import org.apache.ranger.entity.XXPolicyItemGroupPerm;
-import org.apache.ranger.entity.XXPolicyItemRowFilterInfo;
-import org.apache.ranger.entity.XXPolicyItemUserPerm;
-import org.apache.ranger.entity.XXPolicyResource;
-import org.apache.ranger.entity.XXPolicyResourceMap;
-import org.apache.ranger.entity.XXResourceDef;
-import org.apache.ranger.entity.XXService;
-import org.apache.ranger.entity.XXServiceConfigDef;
-import org.apache.ranger.entity.XXServiceConfigMap;
-import org.apache.ranger.entity.XXServiceDef;
-import org.apache.ranger.entity.XXServiceVersionInfo;
-import org.apache.ranger.entity.XXTrxLog;
-import org.apache.ranger.entity.XXUser;
 import org.apache.ranger.plugin.model.RangerPolicy;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerDataMaskPolicyItem;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerRowFilterPolicyItem;
+import org.apache.ranger.plugin.model.RangerPolicy.RangerLimitFilterPolicyItem;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItem;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemAccess;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemCondition;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemDataMaskInfo;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemRowFilterInfo;
+import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemLimitFilterInfo;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
 import org.apache.ranger.plugin.model.RangerPolicyResourceSignature;
 import org.apache.ranger.plugin.model.RangerService;
@@ -137,6 +91,7 @@ import org.apache.ranger.plugin.model.RangerServiceDef.RangerEnumElementDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerPolicyConditionDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerResourceDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerRowFilterDef;
+import org.apache.ranger.plugin.model.RangerServiceDef.RangerLimitFilterDef;
 import org.apache.ranger.plugin.model.RangerServiceDef.RangerServiceConfigDef;
 import org.apache.ranger.plugin.model.validation.RangerServiceDefHelper;
 import org.apache.ranger.plugin.policyevaluator.RangerPolicyItemEvaluator;
@@ -353,11 +308,14 @@ public class ServiceDBStore extends AbstractServiceStore {
 		List<RangerEnumDef> enums = serviceDef.getEnums();
 		RangerDataMaskDef           dataMaskDef          = serviceDef.getDataMaskDef();
 		RangerRowFilterDef          rowFilterDef         = serviceDef.getRowFilterDef();
+		RangerLimitFilterDef limitFilterDef       = serviceDef.getLimitFilterDef();
 		List<RangerDataMaskTypeDef> dataMaskTypes        = dataMaskDef == null || dataMaskDef.getMaskTypes() == null ? new ArrayList<RangerDataMaskTypeDef>() : dataMaskDef.getMaskTypes();
 		List<RangerAccessTypeDef>   dataMaskAccessTypes  = dataMaskDef == null || dataMaskDef.getAccessTypes() == null ? new ArrayList<RangerAccessTypeDef>() : dataMaskDef.getAccessTypes();
 		List<RangerResourceDef>     dataMaskResources    = dataMaskDef == null || dataMaskDef.getResources() == null ? new ArrayList<RangerResourceDef>() : dataMaskDef.getResources();
 		List<RangerAccessTypeDef>   rowFilterAccessTypes = rowFilterDef == null || rowFilterDef.getAccessTypes() == null ? new ArrayList<RangerAccessTypeDef>() : rowFilterDef.getAccessTypes();
 		List<RangerResourceDef>     rowFilterResources   = rowFilterDef == null || rowFilterDef.getResources() == null ? new ArrayList<RangerResourceDef>() : rowFilterDef.getResources();
+		List<RangerAccessTypeDef>   limitFilterAccessTypes = limitFilterDef == null || limitFilterDef.getAccessTypes() == null ? new ArrayList<RangerAccessTypeDef>() : limitFilterDef.getAccessTypes();
+		List<RangerResourceDef>     limitFilterResources   = limitFilterDef == null || limitFilterDef.getResources() == null ? new ArrayList<RangerResourceDef>() : limitFilterDef.getResources();
 
 		// While creating, value of version should be 1.
 		serviceDef.setVersion(Long.valueOf(1));
@@ -496,9 +454,17 @@ public class ServiceDBStore extends AbstractServiceStore {
 			}
 		}
 
+        for(RangerAccessTypeDef accessType : limitFilterAccessTypes) {
+            if(! isAccessTypeInList(accessType.getName(), xxAccessTypeDefs)) {
+                throw restErrorUtil.createRESTException("accessType with name: "
+                        + accessType.getName() + " does not exists", MessageEnums.DATA_NOT_FOUND);
+            }
+        }
+
 		for(XXAccessTypeDef xxAccessTypeDef : xxAccessTypeDefs) {
 			String dataMaskOptions  = null;
 			String rowFilterOptions = null;
+			String limitFilterOptions = null;
 
 			for(RangerAccessTypeDef accessTypeDef : dataMaskAccessTypes) {
 				if(StringUtils.equals(accessTypeDef.getName(), xxAccessTypeDef.getName())) {
@@ -514,11 +480,19 @@ public class ServiceDBStore extends AbstractServiceStore {
 				}
 			}
 
+            for(RangerAccessTypeDef accessTypeDef : limitFilterAccessTypes) {
+                if(StringUtils.equals(accessTypeDef.getName(), xxAccessTypeDef.getName())) {
+                    limitFilterOptions = svcDefServiceWithAssignedId.objectToJson(accessTypeDef);
+                    break;
+                }
+            }
+
 			if(!StringUtils.equals(dataMaskOptions, xxAccessTypeDef.getDataMaskOptions()) ||
-			   !StringUtils.equals(rowFilterOptions, xxAccessTypeDef.getRowFilterOptions())) {
+			   !StringUtils.equals(rowFilterOptions, xxAccessTypeDef.getRowFilterOptions()) ||
+                    !StringUtils.equals(limitFilterOptions, xxAccessTypeDef.getLimitFilterOptions())) {
 				xxAccessTypeDef.setDataMaskOptions(dataMaskOptions);
 				xxAccessTypeDef.setRowFilterOptions(rowFilterOptions);
-
+                xxAccessTypeDef.setLimitFilterOptions(limitFilterOptions);
 				xxATDDao.update(xxAccessTypeDef);
 			}
 		}
@@ -539,9 +513,17 @@ public class ServiceDBStore extends AbstractServiceStore {
 			}
 		}
 
+        for(RangerResourceDef resource : limitFilterResources) {
+            if(! isResourceInList(resource.getName(), xxResourceDefs)) {
+                throw restErrorUtil.createRESTException("resource with name: "
+                        + resource.getName() + " does not exists", MessageEnums.DATA_NOT_FOUND);
+            }
+        }
+
 		for(XXResourceDef xxResourceDef : xxResourceDefs) {
 			String dataMaskOptions  = null;
 			String rowFilterOptions = null;
+            String limitFilterOptions = null;
 
 			for(RangerResourceDef resource : dataMaskResources) {
 				if(StringUtils.equals(resource.getName(), xxResourceDef.getName())) {
@@ -557,10 +539,19 @@ public class ServiceDBStore extends AbstractServiceStore {
 				}
 			}
 
+            for(RangerResourceDef resource : limitFilterResources) {
+                if(StringUtils.equals(resource.getName(), xxResourceDef.getName())) {
+                    limitFilterOptions = svcDefServiceWithAssignedId.objectToJson(resource);
+                    break;
+                }
+            }
+
 			if(!StringUtils.equals(dataMaskOptions, xxResourceDef.getDataMaskOptions()) ||
-			   !StringUtils.equals(rowFilterOptions, xxResourceDef.getRowFilterOptions())) {
+			   !StringUtils.equals(rowFilterOptions, xxResourceDef.getRowFilterOptions()) ||
+                    !StringUtils.equals(limitFilterOptions, xxResourceDef.getLimitFilterOptions())) {
 				xxResourceDef.setDataMaskOptions(dataMaskOptions);
 				xxResourceDef.setRowFilterOptions(rowFilterOptions);
+                xxResourceDef.setLimitFilterOptions(limitFilterOptions);
 
 				xxResDefDao.update(xxResourceDef);
 			}
@@ -614,6 +605,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 		List<RangerEnumDef> enums 						= serviceDef.getEnums() != null 			? serviceDef.getEnums() 			  : new ArrayList<RangerEnumDef>();
 		RangerDataMaskDef dataMaskDef                   = serviceDef.getDataMaskDef();
 		RangerRowFilterDef rowFilterDef                 = serviceDef.getRowFilterDef();
+        RangerLimitFilterDef limitFilterDef               = serviceDef.getLimitFilterDef();
 
 		serviceDef.setCreateTime(existing.getCreateTime());
 		serviceDef.setGuid(existing.getGuid());
@@ -622,7 +614,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 		serviceDef = serviceDefService.update(serviceDef);
 		XXServiceDef createdSvcDef = daoMgr.getXXServiceDef().getById(serviceDefId);
 
-		updateChildObjectsOfServiceDef(createdSvcDef, configs, resources, accessTypes, policyConditions, contextEnrichers, enums, dataMaskDef, rowFilterDef);
+		updateChildObjectsOfServiceDef(createdSvcDef, configs, resources, accessTypes, policyConditions, contextEnrichers, enums, dataMaskDef, rowFilterDef, limitFilterDef);
 
 		RangerServiceDef updatedSvcDef = getServiceDef(serviceDefId);
 		dataHistService.createObjectDataHistory(updatedSvcDef, RangerDataHistService.ACTION_UPDATE);
@@ -640,7 +632,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 	private void updateChildObjectsOfServiceDef(XXServiceDef createdSvcDef, List<RangerServiceConfigDef> configs,
 			List<RangerResourceDef> resources, List<RangerAccessTypeDef> accessTypes,
 			List<RangerPolicyConditionDef> policyConditions, List<RangerContextEnricherDef> contextEnrichers,
-			List<RangerEnumDef> enums, RangerDataMaskDef dataMaskDef, RangerRowFilterDef rowFilterDef) {
+			List<RangerEnumDef> enums, RangerDataMaskDef dataMaskDef, RangerRowFilterDef rowFilterDef, RangerLimitFilterDef limitFilterDef) {
 
 		Long serviceDefId = createdSvcDef.getId();
 
@@ -994,6 +986,8 @@ public class ServiceDBStore extends AbstractServiceStore {
 		List<RangerResourceDef>     dataMaskResources    = dataMaskDef == null || dataMaskDef.getResources() == null ? new ArrayList<RangerResourceDef>() : dataMaskDef.getResources();
 		List<RangerAccessTypeDef>   rowFilterAccessTypes = rowFilterDef == null || rowFilterDef.getAccessTypes() == null ? new ArrayList<RangerAccessTypeDef>() : rowFilterDef.getAccessTypes();
 		List<RangerResourceDef>     rowFilterResources   = rowFilterDef == null || rowFilterDef.getResources() == null ? new ArrayList<RangerResourceDef>() : rowFilterDef.getResources();
+        List<RangerAccessTypeDef>   limitFilterAccessTypes = limitFilterDef == null || limitFilterDef.getAccessTypes() == null ? new ArrayList<RangerAccessTypeDef>() : limitFilterDef.getAccessTypes();
+        List<RangerResourceDef>     limitFilterResources   = limitFilterDef == null || limitFilterDef.getResources() == null ? new ArrayList<RangerResourceDef>() : limitFilterDef.getResources();
 		XXDataMaskTypeDefDao        dataMaskTypeDao      = daoMgr.getXXDataMaskTypeDef();
 		List<XXDataMaskTypeDef>     xxDataMaskTypes      = dataMaskTypeDao.findByServiceDefId(serviceDefId);
 		List<XXAccessTypeDef>       xxAccessTypeDefs     = xxATDDao.findByServiceDefId(serviceDefId);
@@ -1066,6 +1060,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 		for(XXAccessTypeDef xxAccessTypeDef : xxAccessTypeDefs) {
 			String dataMaskOptions = null;
 			String rowFilterOptions = null;
+            String limitFilterOptions = null;
 
 			for(RangerAccessTypeDef accessTypeDef : dataMaskAccessTypes) {
 				if(StringUtils.equals(accessTypeDef.getName(), xxAccessTypeDef.getName())) {
@@ -1081,10 +1076,19 @@ public class ServiceDBStore extends AbstractServiceStore {
 				}
 			}
 
+            for(RangerAccessTypeDef accessTypeDef : limitFilterAccessTypes) {
+                if(StringUtils.equals(accessTypeDef.getName(), xxAccessTypeDef.getName())) {
+                    limitFilterOptions = svcDefServiceWithAssignedId.objectToJson(accessTypeDef);
+                    break;
+                }
+            }
+
 			if(!StringUtils.equals(dataMaskOptions, xxAccessTypeDef.getDataMaskOptions()) ||
-			   !StringUtils.equals(rowFilterOptions, xxAccessTypeDef.getRowFilterOptions())) {
+			   !StringUtils.equals(rowFilterOptions, xxAccessTypeDef.getRowFilterOptions()) ||
+                    !StringUtils.equals(limitFilterOptions, xxAccessTypeDef.getLimitFilterOptions())) {
 				xxAccessTypeDef.setDataMaskOptions(dataMaskOptions);
 				xxAccessTypeDef.setRowFilterOptions(rowFilterOptions);
+                xxAccessTypeDef.setRowFilterOptions(limitFilterOptions);
 				xxATDDao.update(xxAccessTypeDef);
 			}
 		}
@@ -1103,9 +1107,17 @@ public class ServiceDBStore extends AbstractServiceStore {
 			}
 		}
 
+        for(RangerResourceDef resource : limitFilterResources) {
+            if(! isResourceInList(resource.getName(), xxResourceDefs)) {
+                throw restErrorUtil.createRESTException("resource with name: "
+                        + resource.getName() + " does not exists", MessageEnums.DATA_NOT_FOUND);
+            }
+        }
+
 		for(XXResourceDef xxResourceDef : xxResourceDefs) {
 			String dataMaskOptions  = null;
 			String rowFilterOptions = null;
+            String limitFilterOptions = null;
 
 			for(RangerResourceDef resource : dataMaskResources) {
 				if(StringUtils.equals(resource.getName(), xxResourceDef.getName())) {
@@ -1121,10 +1133,19 @@ public class ServiceDBStore extends AbstractServiceStore {
 				}
 			}
 
+            for(RangerResourceDef resource : limitFilterResources) {
+                if(StringUtils.equals(resource.getName(), xxResourceDef.getName())) {
+                    limitFilterOptions = svcDefServiceWithAssignedId.objectToJson(resource);
+                    break;
+                }
+            }
+
 			if(!StringUtils.equals(dataMaskOptions, xxResourceDef.getDataMaskOptions()) ||
-			   !StringUtils.equals(rowFilterOptions, xxResourceDef.getRowFilterOptions())) {
+			   !StringUtils.equals(rowFilterOptions, xxResourceDef.getRowFilterOptions()) ||
+                    !StringUtils.equals(limitFilterOptions, xxResourceDef.getLimitFilterOptions())) {
 				xxResourceDef.setDataMaskOptions(dataMaskOptions);
 				xxResourceDef.setRowFilterOptions(rowFilterOptions);
+                xxResourceDef.setLimitFilterOptions(limitFilterOptions);
 				xxResDefDao.update(xxResourceDef);
 			}
 		}
@@ -1781,6 +1802,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 		List<RangerPolicyItem> denyExceptions  = policy.getDenyExceptions();
 		List<RangerDataMaskPolicyItem> dataMaskItems  = policy.getDataMaskPolicyItems();
 		List<RangerRowFilterPolicyItem> rowFilterItems = policy.getRowFilterPolicyItems();
+        List<RangerLimitFilterPolicyItem> limitFilterItems = policy.getLimitFilterPolicyItems();
 
 		policy.setVersion(Long.valueOf(1));
 		updatePolicySignature(policy);
@@ -1807,6 +1829,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 		createNewPolicyItemsForPolicy(policy, xCreatedPolicy, denyExceptions, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY_EXCEPTIONS);
 		createNewDataMaskPolicyItemsForPolicy(policy, xCreatedPolicy, dataMaskItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DATAMASK);
 		createNewRowFilterPolicyItemsForPolicy(policy, xCreatedPolicy, rowFilterItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ROWFILTER);
+        createNewLimitFilterPolicyItemsForPolicy(policy, xCreatedPolicy, limitFilterItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_LIMITFILTER);
 		handlePolicyUpdate(service, true);
 		RangerPolicy createdPolicy = policyService.getPopulatedViewObject(xCreatedPolicy);
 		dataHistService.createObjectDataHistory(createdPolicy, RangerDataHistService.ACTION_CREATE);
@@ -1861,6 +1884,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 		List<RangerPolicyItem> denyExceptions  = policy.getDenyExceptions();
 		List<RangerDataMaskPolicyItem> dataMaskPolicyItems = policy.getDataMaskPolicyItems();
 		List<RangerRowFilterPolicyItem> rowFilterItems = policy.getRowFilterPolicyItems();
+        List<RangerLimitFilterPolicyItem> limitFilterItems = policy.getLimitFilterPolicyItems();
 
 		policy.setCreateTime(xxExisting.getCreateTime());
 		policy.setGuid(xxExisting.getGuid());
@@ -1888,6 +1912,7 @@ public class ServiceDBStore extends AbstractServiceStore {
 		createNewPolicyItemsForPolicy(policy, newUpdPolicy, denyExceptions, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DENY_EXCEPTIONS);
 		createNewDataMaskPolicyItemsForPolicy(policy, newUpdPolicy, dataMaskPolicyItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DATAMASK);
 		createNewRowFilterPolicyItemsForPolicy(policy, newUpdPolicy, rowFilterItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ROWFILTER);
+        createNewLimitFilterPolicyItemsForPolicy(policy, newUpdPolicy, limitFilterItems, xServiceDef, RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_LIMITFILTER);
 
 		handlePolicyUpdate(service, isTagVersionUpdateNeeded);
 		RangerPolicy updPolicy = policyService.getPopulatedViewObject(newUpdPolicy);
@@ -2888,6 +2913,27 @@ public class ServiceDBStore extends AbstractServiceStore {
 		}
 	}
 
+    private void createNewLimitFilterPolicyItemsForPolicy(RangerPolicy policy, XXPolicy xPolicy, List<RangerLimitFilterPolicyItem> policyItems, XXServiceDef xServiceDef, int policyItemType) throws Exception {
+        if(CollectionUtils.isNotEmpty(policyItems)) {
+            for (int itemOrder = 0; itemOrder < policyItems.size(); itemOrder++) {
+                RangerLimitFilterPolicyItem policyItem = policyItems.get(itemOrder);
+
+                XXPolicyItem xPolicyItem = createNewPolicyItemForPolicy(policy, xPolicy, policyItem, xServiceDef, itemOrder, policyItemType);
+
+                RangerPolicyItemLimitFilterInfo limitFilterInfo = policyItem.getLimitFilterInfo();
+
+                if(limitFilterInfo != null) {
+                    XXPolicyItemLimitFilterInfo xxLimitFilterInfo = new XXPolicyItemLimitFilterInfo();
+
+                    xxLimitFilterInfo.setPolicyItemId(xPolicyItem.getId());
+                    xxLimitFilterInfo.setFilterExpr(limitFilterInfo.getFilterExpr());
+
+                    xxLimitFilterInfo = daoMgr.getXXPolicyItemLimitFilterInfo().create(xxLimitFilterInfo);
+                }
+            }
+        }
+    }
+
 	private void createNewResourcesForPolicy(RangerPolicy policy, XXPolicy xPolicy, Map<String, RangerPolicyResource> resources) throws Exception {
 		
 		for (Entry<String, RangerPolicyResource> resource : resources.entrySet()) {
@@ -2969,6 +3015,12 @@ public class ServiceDBStore extends AbstractServiceStore {
 			for(XXPolicyItemRowFilterInfo rowFilterInfo : rowFilterInfos) {
 				polItemRowFilterInfoDao.remove(rowFilterInfo);
 			}
+
+            XXPolicyItemLimitFilterInfoDao polItemLimitFilterInfoDao = daoMgr.getXXPolicyItemLimitFilterInfo();
+            List<XXPolicyItemLimitFilterInfo> limitFilterInfos = polItemLimitFilterInfoDao.findByPolicyItemId(polItemId);
+            for(XXPolicyItemLimitFilterInfo limitFilterInfo : limitFilterInfos) {
+                polItemLimitFilterInfoDao.remove(limitFilterInfo);
+            }
 
 			policyItemDao.remove(policyItem);
 		}

@@ -146,6 +146,7 @@ public abstract class RangerServiceDefServiceBase<T extends XXServiceDefBase, V 
 
 		RangerDataMaskDef  dataMaskDef  = new RangerDataMaskDef();
 		RangerRowFilterDef rowFilterDef = new RangerRowFilterDef();
+		RangerServiceDef.RangerLimitFilterDef limitFilterDef = new RangerServiceDef.RangerLimitFilterDef();
 
 		List<XXDataMaskTypeDef> xDataMaskTypes = daoMgr.getXXDataMaskTypeDef().findByServiceDefId(serviceDefId);
 		if (!stringUtil.isEmpty(xDataMaskTypes)) {
@@ -171,6 +172,11 @@ public abstract class RangerServiceDefServiceBase<T extends XXServiceDefBase, V 
 
 					rowFilterDef.getResources().add(resource);
 				}
+				if (StringUtils.isNotEmpty(xResource.getLimitFilterOptions())) {
+					RangerResourceDef resource = jsonToObject(xResource.getLimitFilterOptions(), RangerResourceDef.class);
+
+					rowFilterDef.getResources().add(resource);
+				}
 			}
 		}
 
@@ -187,10 +193,16 @@ public abstract class RangerServiceDefServiceBase<T extends XXServiceDefBase, V 
 
 					rowFilterDef.getAccessTypes().add(accessType);
 				}
+				if(StringUtils.isNotEmpty(xAtd.getLimitFilterOptions())) {
+					RangerAccessTypeDef accessType = jsonToObject(xAtd.getLimitFilterOptions(), RangerAccessTypeDef.class);
+
+					rowFilterDef.getAccessTypes().add(accessType);
+				}
 			}
 		}
 		serviceDef.setDataMaskDef(dataMaskDef);
 		serviceDef.setRowFilterDef(rowFilterDef);
+		serviceDef.setLimitFilterDef(limitFilterDef);
 
 		ServiceDefUtil.normalize(serviceDef);
 

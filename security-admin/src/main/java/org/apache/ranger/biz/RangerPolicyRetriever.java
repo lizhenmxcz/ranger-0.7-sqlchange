@@ -39,8 +39,10 @@ import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemAccess;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemCondition;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemDataMaskInfo;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemRowFilterInfo;
+import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyItemLimitFilterInfo;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerRowFilterPolicyItem;
+import org.apache.ranger.plugin.model.RangerPolicy.RangerLimitFilterPolicyItem;
 import org.apache.ranger.plugin.policyevaluator.RangerPolicyItemEvaluator;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 
@@ -413,6 +415,7 @@ public class RangerPolicyRetriever {
 		final ListIterator<XXPolicyItemCondition> iterConditions;
 		final ListIterator<XXPolicyItemDataMaskInfo>  iterDataMaskInfos;
 		final ListIterator<XXPolicyItemRowFilterInfo> iterRowFilterInfos;
+		final ListIterator<XXPolicyItemLimitFilterInfo> iterLimitFilterInfos;
 
 		RetrieverContext(XXService xService) {
 			Long serviceId = xService == null ? null : xService.getId();
@@ -427,6 +430,7 @@ public class RangerPolicyRetriever {
 			List<XXPolicyItemCondition> xConditions   = daoMgr.getXXPolicyItemCondition().findByServiceId(serviceId);
 			List<XXPolicyItemDataMaskInfo>  xDataMaskInfos  = daoMgr.getXXPolicyItemDataMaskInfo().findByServiceId(serviceId);
 			List<XXPolicyItemRowFilterInfo> xRowFilterInfos = daoMgr.getXXPolicyItemRowFilterInfo().findByServiceId(serviceId);
+			List<XXPolicyItemLimitFilterInfo> xLimitFilterInfos = daoMgr.getXXPolicyItemLimitFilterInfo().findByServiceId(serviceId);
 
 			this.service          = xService;
 			this.iterPolicy       = xPolicies.listIterator();
@@ -439,6 +443,7 @@ public class RangerPolicyRetriever {
 			this.iterConditions   = xConditions.listIterator();
 			this.iterDataMaskInfos  = xDataMaskInfos.listIterator();
 			this.iterRowFilterInfos = xRowFilterInfos.listIterator();
+			this.iterLimitFilterInfos = xLimitFilterInfos.listIterator();
 		}
 
 		RetrieverContext(XXPolicy xPolicy) {
@@ -458,6 +463,7 @@ public class RangerPolicyRetriever {
 			List<XXPolicyItemCondition> xConditions   = daoMgr.getXXPolicyItemCondition().findByPolicyId(policyId);
 			List<XXPolicyItemDataMaskInfo>  xDataMaskInfos  = daoMgr.getXXPolicyItemDataMaskInfo().findByPolicyId(policyId);
 			List<XXPolicyItemRowFilterInfo> xRowFilterInfos = daoMgr.getXXPolicyItemRowFilterInfo().findByPolicyId(policyId);
+			List<XXPolicyItemLimitFilterInfo> xLimitFilterInfos = daoMgr.getXXPolicyItemLimitFilterInfo().findByPolicyId(policyId);
 
 			this.service          = xService;
 			this.iterPolicy       = xPolicies.listIterator();
@@ -470,6 +476,7 @@ public class RangerPolicyRetriever {
 			this.iterConditions   = xConditions.listIterator();
 			this.iterDataMaskInfos  = xDataMaskInfos.listIterator();
 			this.iterRowFilterInfos = xRowFilterInfos.listIterator();
+			this.iterLimitFilterInfos = xLimitFilterInfos.listIterator();
 		}
 
 		RangerPolicy getNextPolicy() {
@@ -558,7 +565,8 @@ public class RangerPolicyRetriever {
 									|| iterAccesses.hasNext()
 									|| iterConditions.hasNext()
 									|| iterDataMaskInfos.hasNext()
-									|| iterRowFilterInfos.hasNext();
+									|| iterRowFilterInfos.hasNext()
+					                || iterLimitFilterInfos.hasNext();
 
 			return !moreToProcess;
 		}
@@ -604,18 +612,27 @@ public class RangerPolicyRetriever {
 					final RangerPolicyItem          policyItem;
 					final RangerDataMaskPolicyItem  dataMaskPolicyItem;
 					final RangerRowFilterPolicyItem rowFilterPolicyItem;
+					final RangerLimitFilterPolicyItem limitFilterPolicyItem;
 
 					if(xPolicyItem.getItemType() == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_DATAMASK) {
 						dataMaskPolicyItem  = new RangerDataMaskPolicyItem();
 						rowFilterPolicyItem = null;
+						limitFilterPolicyItem = null;
 						policyItem          = dataMaskPolicyItem;
 					} else if(xPolicyItem.getItemType() == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ROWFILTER) {
 						dataMaskPolicyItem  = null;
 						rowFilterPolicyItem = new RangerRowFilterPolicyItem();
+						limitFilterPolicyItem = null;
+						policyItem          = rowFilterPolicyItem;
+					} else if(xPolicyItem.getItemType() == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_LIMITFILTER) {
+						dataMaskPolicyItem  = null;
+						rowFilterPolicyItem = null;
+						limitFilterPolicyItem = new RangerLimitFilterPolicyItem();
 						policyItem          = rowFilterPolicyItem;
 					} else {
 						dataMaskPolicyItem  = null;
 						rowFilterPolicyItem = null;
+						limitFilterPolicyItem = null;
 						policyItem          = new RangerPolicyItem();
 					}
 
@@ -722,6 +739,21 @@ public class RangerPolicyRetriever {
 						}
 					}
 
+					if(limitFilterPolicyItem != null) {
+						while (iterLimitFilterInfos.hasNext()) {
+							XXPolicyItemLimitFilterInfo xLimitFilterInfo = iterLimitFilterInfos.next();
+
+							if (xLimitFilterInfo.getPolicyItemId().equals(xPolicyItem.getId())) {
+								limitFilterPolicyItem.setLimitFilterInfo(new RangerPolicyItemLimitFilterInfo(xLimitFilterInfo.getFilterExpr()));
+							} else {
+								if (iterRowFilterInfos.hasPrevious()) {
+									iterRowFilterInfos.previous();
+								}
+								break;
+							}
+						}
+					}
+
 
 					int itemType = xPolicyItem.getItemType() == null ? RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ALLOW : xPolicyItem.getItemType();
 
@@ -737,6 +769,8 @@ public class RangerPolicyRetriever {
 						policy.getDataMaskPolicyItems().add(dataMaskPolicyItem);
 					} else if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_ROWFILTER) {
 						policy.getRowFilterPolicyItems().add(rowFilterPolicyItem);
+					} else if(itemType == RangerPolicyItemEvaluator.POLICY_ITEM_TYPE_LIMITFILTER) {
+						policy.getLimitFilterPolicyItems().add(limitFilterPolicyItem);
 					} else { // unknown itemType
 						LOG.warn("RangerPolicyRetriever.getPolicy(policyId=" + policy.getId() + "): ignoring unknown policyItemType " + itemType);
 					}

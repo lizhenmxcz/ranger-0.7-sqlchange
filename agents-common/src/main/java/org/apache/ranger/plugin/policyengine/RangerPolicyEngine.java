@@ -61,6 +61,9 @@ public interface RangerPolicyEngine {
 
 	RangerRowFilterResult evalRowFilterPolicies(RangerAccessRequest request, RangerAccessResultProcessor resultProcessor);
 
+	RangerLimitFilterResult evalLimitFilterPolicies(RangerAccessRequest request, RangerAccessResultProcessor resultProcessor);
+
+
 	boolean isAccessAllowed(RangerAccessResource resource, String user, Set<String> userGroups, String accessType);
 
 	boolean isAccessAllowed(Map<String, RangerPolicyResource> resources, String user, Set<String> userGroups, String accessType);
