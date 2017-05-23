@@ -367,6 +367,7 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 					request.setResource(tblResource);
 
 					RangerRowFilterResult rowFilterResult = getRowFilterResult(request);
+					RangerLimitFilterResult limitFilterResult = getLimitFilterResult(request);
 
 					if (isRowFilterEnabled(rowFilterResult)) {
 						if(result == null) {
@@ -376,7 +377,16 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 						result.setIsAllowed(false);
 						result.setPolicyId(rowFilterResult.getPolicyId());
 						result.setReason("User does not have acces to all rows of the table");
-					} else {
+					}else if(isLimitFilterEnabled(limitFilterResult)){
+						if(result == null) {
+							result = new RangerAccessResult(limitFilterResult.getServiceName(), limitFilterResult.getServiceDef(), request);
+						}
+
+						result.setIsAllowed(false);
+						result.setPolicyId(limitFilterResult.getPolicyId());
+						result.setReason("User does not have acces to all rows of the table");
+					}
+					else {
 						// check if masking is enabled for any column in the table/view
 						request.setResourceMatchingScope(RangerAccessRequest.ResourceMatchingScope.SELF_OR_DESCENDANTS);
 
@@ -540,6 +550,16 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 						hiveObj.setRowFilterExpression(rowFilterExpr);
 					}
 
+					String limitFilterExpr = getLimitFilterExpression(queryContext, database, table);
+
+					if (StringUtils.isNotBlank(limitFilterExpr)) {
+						if(LOG.isDebugEnabled()) {
+							LOG.debug("limitFilter(database=" + database + ", table=" + table + "): " + limitFilterExpr);
+						}
+
+						hiveObj.setLimitFilterExpression(limitFilterExpr);
+					}
+
 					if (CollectionUtils.isNotEmpty(hiveObj.getColumns())) {
 						List<String> columnTransformers = new ArrayList<String>();
 
@@ -596,6 +616,20 @@ public class RangerHiveAuthorizer extends RangerHiveAuthorizerBase {
 
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("<== getRowFilterResult(request=" + request + "): ret=" + ret);
+		}
+
+		return ret;
+	}
+
+	private RangerLimitFilterResult getLimitFilterResult(RangerHiveAccessRequest request) {
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("==> getLimitFilterResult(request=" + request + ")");
+		}
+
+		RangerLimitFilterResult ret = hivePlugin.evalLimitFilterPolicies(request, null);
+
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("<== getLimitFilterResult(request=" + request + "): ret=" + ret);
 		}
 
 		return ret;

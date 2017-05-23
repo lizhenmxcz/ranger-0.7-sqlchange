@@ -550,7 +550,7 @@ public class HIVERangerAuthorizerTest {
 //        connection = DriverManager.getConnection(url, "dave", "bob");
  //       statement = connection.createStatement();
 
-        ResultSet resultSet = statement.executeQuery("SELECT * FROM words");
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM words where count < 10");
         System.out.println("+++++++++++++++++++++++++++++++++");
         while (resultSet.next()){
             System.out.println(resultSet.getString(1));

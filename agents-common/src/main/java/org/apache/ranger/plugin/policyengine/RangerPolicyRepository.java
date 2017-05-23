@@ -390,6 +390,7 @@ class RangerPolicyRepository {
                 normalizeAndPrunePolicyItems(policy.getDenyExceptions(), componentType);
                 normalizeAndPrunePolicyItems(policy.getDataMaskPolicyItems(), componentType);
                 normalizeAndPrunePolicyItems(policy.getRowFilterPolicyItems(), componentType);
+                normalizeAndPrunePolicyItems(policy.getLimitFilterPolicyItems(), componentType);
 
                 if (!policy.getIsAuditEnabled() &&
                     CollectionUtils.isEmpty(policy.getPolicyItems()) &&
@@ -397,7 +398,8 @@ class RangerPolicyRepository {
                     CollectionUtils.isEmpty(policy.getAllowExceptions()) &&
                     CollectionUtils.isEmpty(policy.getDenyExceptions()) &&
                     CollectionUtils.isEmpty(policy.getDataMaskPolicyItems()) &&
-                    CollectionUtils.isEmpty(policy.getRowFilterPolicyItems())) {
+                    CollectionUtils.isEmpty(policy.getRowFilterPolicyItems()) &&
+                        CollectionUtils.isEmpty(policy.getLimitFilterPolicyItems())) {
 
                     if(policiesToPrune == null) {
                         policiesToPrune = new ArrayList<RangerPolicy>();
@@ -774,6 +776,12 @@ class RangerPolicyRepository {
             reorderPolicyEvaluators(rowFilterResourceTrie);
         } else {
             rowFilterPolicyEvaluators = getReorderedPolicyEvaluators(rowFilterPolicyEvaluators);
+        }
+
+        if(limitFilterResourceTrie != null) {
+            reorderPolicyEvaluators(limitFilterResourceTrie);
+        } else {
+            limitFilterPolicyEvaluators = getReorderedPolicyEvaluators(limitFilterPolicyEvaluators);
         }
 
         if (LOG.isDebugEnabled()) {

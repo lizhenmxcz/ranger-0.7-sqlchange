@@ -972,7 +972,7 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
 			this(null, null, null, null, null, null);
 		}
 
-		public RangerDataMaskPolicyItem(List<RangerPolicyItemAccess> accesses, List<String> users, List<String> groups, List<RangerPolicyItemCondition> conditions, Boolean delegateAdmin) {
+		public RangerDataMaskPolicyItem(List<RangerPolicyItemAccess> accesses, RangerPolicyItemDataMaskInfo dataMaskDetail,List<String> users, List<String> groups, List<RangerPolicyItemCondition> conditions, Boolean delegateAdmin) {
 			super(accesses, users, groups, conditions, delegateAdmin);
 
 			setDataMaskInfo(dataMaskDetail);
@@ -988,7 +988,7 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
 		/**
 		 * @param dataMaskInfo the dataMaskInfo to set
 		 */
-		public void setDataMaskInfo() {
+		public void setDataMaskInfo(RangerPolicyItemDataMaskInfo dataMaskInfo) {
 			this.dataMaskInfo = dataMaskInfo == null ? new RangerPolicyItemDataMaskInfo() : dataMaskInfo;
 		}
 

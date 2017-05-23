@@ -930,6 +930,9 @@ public class RangerPolicyEngineImpl implements RangerPolicyEngine {
 			for (RangerPolicyEvaluator evaluator : tagPolicyRepository.getRowFilterPolicyEvaluators()) {
 				tmpPolicyEvaluatorMap.put(evaluator.getPolicy().getId(), evaluator);
 			}
+            for (RangerPolicyEvaluator evaluator : tagPolicyRepository.getLimitFilterPolicyEvaluators()) {
+                tmpPolicyEvaluatorMap.put(evaluator.getPolicy().getId(), evaluator);
+            }
 		}
 		for (RangerPolicyEvaluator evaluator : policyRepository.getPolicyEvaluators()) {
 			tmpPolicyEvaluatorMap.put(evaluator.getPolicy().getId(), evaluator);
@@ -938,6 +941,9 @@ public class RangerPolicyEngineImpl implements RangerPolicyEngine {
 			tmpPolicyEvaluatorMap.put(evaluator.getPolicy().getId(), evaluator);
 		}
 		for (RangerPolicyEvaluator evaluator : policyRepository.getRowFilterPolicyEvaluators()) {
+			tmpPolicyEvaluatorMap.put(evaluator.getPolicy().getId(), evaluator);
+		}
+		for (RangerPolicyEvaluator evaluator : policyRepository.getLimitFilterPolicyEvaluators()) {
 			tmpPolicyEvaluatorMap.put(evaluator.getPolicy().getId(), evaluator);
 		}
 

@@ -437,7 +437,7 @@
     },
     {
       "service": "HIVETest",
-      "name": "DaveFilter",
+      "name": "DaveRowFilter",
       "policyType": 2,
       "isAuditEnabled": true,
       "resources": {
@@ -464,6 +464,55 @@
       "rowFilterPolicyItems": [
         {
           "rowFilterInfo": {
+            "filterExpr": "count > 2"
+          },
+          "accesses": [
+            {
+              "type": "select",
+              "isAllowed": true
+            }
+          ],
+          "users": [
+            "dave"
+          ],
+          "groups": [],
+          "conditions": [],
+          "delegateAdmin": false
+        }
+      ],
+      "id": 14,
+      "isEnabled": true,
+      "version": 1
+    },
+    {
+      "service": "HIVETest",
+      "name": "DaveFilter",
+      "policyType": 3,
+      "isAuditEnabled": true,
+      "resources": {
+        "database": {
+          "values": [
+            "rangerauthz"
+          ],
+          "isExcludes": false,
+          "isRecursive": false
+        },
+        "table": {
+          "values": [
+            "words"
+          ],
+          "isExcludes": false,
+          "isRecursive": false
+        }
+      },
+      "policyItems": [],
+      "denyPolicyItems": [],
+      "allowExceptions": [],
+      "denyExceptions": [],
+      "dataMaskPolicyItems": [],
+      "limitFilterPolicyItems": [
+        {
+          "limitFilterInfo": {
             "filterExpr": "limit 5"
           },
           "accesses": [
